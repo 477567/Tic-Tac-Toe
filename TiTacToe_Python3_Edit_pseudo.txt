@@ -1,0 +1,482 @@
+IMPORT random
+
+IMPORT tkinter
+
+from tkinter IMPORT *
+
+from functools IMPORT partial
+
+from tkinter IMPORT messagebox
+
+from copy IMPORT deepcopy
+
+
+
+# sign variable to decide the turn of which player
+
+SET sign TO 0
+
+
+
+# Creates an empty board
+
+global board
+
+SET board TO [[" " FOR x IN range(3)] FOR y IN range(3)]
+
+
+
+# Check l(O/X) won the match or not
+
+DEFINE FUNCTION winner(b, l):
+
+	RETURN ((b[0][0] EQUALS l and b[0][1] EQUALS l and b[0][2] EQUALS l) or
+
+			(b[1][0] EQUALS l and b[1][1] EQUALS l and b[1][2] EQUALS l) or
+
+			(b[2][0] EQUALS l and b[2][1] EQUALS l and b[2][2] EQUALS l) or
+
+			(b[0][0] EQUALS l and b[1][0] EQUALS l and b[2][0] EQUALS l) or
+
+			(b[0][1] EQUALS l and b[1][1] EQUALS l and b[2][1] EQUALS l) or
+
+			(b[0][2] EQUALS l and b[1][2] EQUALS l and b[2][2] EQUALS l) or
+
+			(b[0][0] EQUALS l and b[1][1] EQUALS l and b[2][2] EQUALS l) or
+
+			(b[0][2] EQUALS l and b[1][1] EQUALS l and b[2][0] EQUALS l))
+
+
+
+# Configure text on button WHILE playing with another player
+
+DEFINE FUNCTION get_text(i, j, gb, l1, l2):
+
+	global sign
+
+	IF board[i][j] EQUALS ' ':
+
+		IF sign % 2 EQUALS 0:
+
+			l1.config(state=DISABLED)
+
+			l2.config(state=ACTIVE)
+
+			SET board[i][j] TO "X"
+
+		ELSE:
+
+			l2.config(state=DISABLED)
+
+			l1.config(state=ACTIVE)
+
+			SET board[i][j] TO "O"
+
+		sign += 1
+
+		button[i][j].config(text=board[i][j])
+
+	IF winner(board, "X"):
+
+		gb.destroy()
+
+		SET box TO messagebox.showinfo("Winner", "Congrats!Player 1 won the game")
+
+	ELSEIF winner(board, "O"):
+
+		gb.destroy()
+
+		SET box TO messagebox.showinfo("Winner", "Congrats!Player 2 won the game")
+
+	elif(isfull()):
+
+		gb.destroy()
+
+		SET box TO messagebox.showinfo("Tie Game", "Tie Game")
+
+
+
+# Check IF the player can push the button or not
+
+
+
+
+
+DEFINE FUNCTION isfree(i, j):
+
+	RETURN board[i][j] EQUALS " "
+
+
+
+# Check the board is full or not
+
+
+
+
+
+DEFINE FUNCTION isfull():
+
+	SET flag TO True
+
+	FOR i IN board:
+
+		if(i.count(' ') > 0):
+
+			SET flag TO False
+
+	RETURN flag
+
+
+
+# Create the GUI of game board FOR play along with another player
+
+
+
+
+
+DEFINE FUNCTION gameboard_pl(game_board, l1, l2):
+
+	global button
+
+	SET button TO []
+
+	FOR i IN range(3):
+
+		SET m TO 3+i
+
+		button.append(i)
+
+		SET button[i] TO []
+
+		FOR j IN range(3):
+
+			SET n TO j
+
+			button[i].append(j)
+
+			SET get_t TO partial(get_text, i, j, game_board, l1, l2)
+
+			SET button[i][j] TO Button(
+
+				game_board, bd=5, command=get_t, height=4, width=8)
+
+			button[i][j].grid(row=m, column=n)
+
+	game_board.mainloop()
+
+
+
+# Decide the next move of system
+
+
+
+
+
+DEFINE FUNCTION pc():
+
+	SET possiblemove TO []
+
+	FOR i IN range(len(board)):
+
+		FOR j IN range(len(board[i])):
+
+			IF board[i][j] EQUALS ' ':
+
+				possiblemove.append([i, j])
+
+	SET move TO []
+
+	IF possiblemove EQUALS []:
+
+		RETURN
+
+	ELSE:
+
+		FOR let IN ['O', 'X']:
+
+			FOR i IN possiblemove:
+
+				SET boardcopy TO deepcopy(board)
+
+				SET boardcopy[i[0]][i[1]] TO let
+
+				IF winner(boardcopy, let):
+
+					RETURN i
+
+		SET corner TO []
+
+		FOR i IN possiblemove:
+
+			IF i IN [[0, 0], [0, 2], [2, 0], [2, 2]]:
+
+				corner.append(i)
+
+		IF len(corner) > 0:
+
+			SET move TO random.randint(0, len(corner)-1)
+
+			RETURN corner[move]
+
+		SET edge TO []
+
+		FOR i IN possiblemove:
+
+			IF i IN [[0, 1], [1, 0], [1, 2], [2, 1]]:
+
+				edge.append(i)
+
+		IF len(edge) > 0:
+
+			SET move TO random.randint(0, len(edge)-1)
+
+			RETURN edge[move]
+
+
+
+# Configure text on button WHILE playing with system
+
+
+
+
+
+DEFINE FUNCTION get_text_pc(i, j, gb, l1, l2):
+
+	global sign
+
+	IF board[i][j] EQUALS ' ':
+
+		IF sign % 2 EQUALS 0:
+
+			l1.config(state=DISABLED)
+
+			l2.config(state=ACTIVE)
+
+			SET board[i][j] TO "X"
+
+		ELSE:
+
+			button[i][j].config(state=ACTIVE)
+
+			l2.config(state=DISABLED)
+
+			l1.config(state=ACTIVE)
+
+			SET board[i][j] TO "O"
+
+		sign += 1
+
+		button[i][j].config(text=board[i][j])
+
+	SET x TO True
+
+	IF winner(board, "X"):
+
+		gb.destroy()
+
+		SET x TO False
+
+		SET box TO messagebox.showinfo("Winner", "Player won the game")
+
+	ELSEIF winner(board, "O"):
+
+		gb.destroy()
+
+		SET x TO False
+
+		SET box TO messagebox.showinfo("Winner", "Computer won the game")
+
+	elif(isfull()):
+
+		gb.destroy()
+
+		SET x TO False
+
+		SET box TO messagebox.showinfo("Tie Game", "Tie Game")
+
+	if(x):
+
+		IF sign % 2 != 0:
+
+			SET move TO pc()
+
+			button[move[0]][move[1]].config(state=DISABLED)
+
+			get_text_pc(move[0], move[1], gb, l1, l2)
+
+
+
+# Create the GUI of game board FOR play along with system
+
+
+
+
+
+DEFINE FUNCTION gameboard_pc(game_board, l1, l2):
+
+	global button
+
+	SET button TO []
+
+	FOR i IN range(3):
+
+		SET m TO 3+i
+
+		button.append(i)
+
+		SET button[i] TO []
+
+		FOR j IN range(3):
+
+			SET n TO j
+
+			button[i].append(j)
+
+			SET get_t TO partial(get_text_pc, i, j, game_board, l1, l2)
+
+			SET button[i][j] TO Button(
+
+				game_board, bd=5, command=get_t, height=4, width=8)
+
+			button[i][j].grid(row=m, column=n)
+
+	game_board.mainloop()
+
+
+
+# Initialize the game board to play with system
+
+
+
+
+
+DEFINE FUNCTION withpc(game_board):
+
+	game_board.destroy()
+
+	SET game_board TO Tk()
+
+	game_board.title("Tic Tac Toe")
+
+	SET l1 TO Button(game_board, text="Player : X", width=10)
+
+	l1.grid(row=1, column=1)
+
+	SET l2 TO Button(game_board, text="Computer : O",
+
+				width=10, state=DISABLED)
+
+
+
+	l2.grid(row=2, column=1)
+
+	gameboard_pc(game_board, l1, l2)
+
+
+
+# Initialize the game board to play with another player
+
+
+
+
+
+DEFINE FUNCTION withplayer(game_board):
+
+	game_board.destroy()
+
+	SET game_board TO Tk()
+
+	game_board.title("Tic Tac Toe")
+
+	SET l1 TO Button(game_board, text="Player 1 : X", width=10)
+
+
+
+	l1.grid(row=1, column=1)
+
+	SET l2 TO Button(game_board, text="Player 2 : O",
+
+				width=10, state=DISABLED)
+
+
+
+	l2.grid(row=2, column=1)
+
+	gameboard_pl(game_board, l1, l2)
+
+
+
+# main function
+
+
+
+
+
+DEFINE FUNCTION play():
+
+	SET menu TO Tk()
+
+	menu.geometry("250x250")
+
+	menu.title("Tic Tac Toe")
+
+	SET wpc TO partial(withpc, menu)
+
+	SET wpl TO partial(withplayer, menu)
+
+
+
+	SET head TO Button(menu, text="Welcome to Tic Tac Toe game",
+
+				activeforeground='black',
+
+				activebackground="yellow", bg="black",
+
+				fg="yellow", width=500, font='summer', bd=5)
+
+
+
+	SET B1 TO Button(menu, text="Single Player", command=wpc,
+
+				activeforeground='black',
+
+				activebackground="yellow", bg="black",
+
+				fg="yellow", width=500, font='summer', bd=5)
+
+
+
+	SET B2 TO Button(menu, text="Multi Player", command=wpl, activeforeground='black',
+
+				activebackground="yellow", bg="black", fg="yellow",
+
+				width=500, font='summer', bd=5)
+
+
+
+	SET B3 TO Button(menu, text="Exit", command=menu.quit, activeforeground='black',
+
+				activebackground="yellow", bg="black", fg="yellow",
+
+				width=500, font='summer', bd=5)
+
+	head.pack(side='top')
+
+	B1.pack(side='top')
+
+	B2.pack(side='top')
+
+	B3.pack(side='top')
+
+	menu.mainloop()
+
+
+
+
+
+# Call main function
+
+IF __name__ EQUALS '__main__':
+
+	play()
+
