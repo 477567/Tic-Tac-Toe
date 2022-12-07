@@ -1,3 +1,4 @@
+# importing all used libraries
 import random
 import tkinter
 from tkinter import *
@@ -5,10 +6,9 @@ from functools import partial
 from tkinter import messagebox
 from copy import deepcopy
 
-# sign variable to decide the turn of which player
 sign = 0
 
-# Creates an empty board
+# Creates an empty board as a game background
 global board
 board = [[" " for x in range(3)] for y in range(3)]
 
